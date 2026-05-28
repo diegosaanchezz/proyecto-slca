@@ -3,29 +3,29 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 
 db = SQLAlchemy()
-login_manager = LoginManager()
+loginManager = LoginManager()
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object('config.Config')
+def crearAplicacion():
+    aplicacion = Flask(__name__)
+    aplicacion.config.from_object('config.Config')
 
-    db.init_app(app)
-    login_manager.init_app(app)
-    login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Inicia sesión para continuar.'
+    db.init_app(aplicacion)
+    loginManager.init_app(aplicacion)
+    loginManager.login_view = 'auth.paginaLogin'
+    loginManager.login_message = 'Inicia sesion para continuar.'
 
-    from .routes import auth, productos, ventas
-    app.register_blueprint(auth)
-    app.register_blueprint(productos)
-    app.register_blueprint(ventas)
+    from .routes import autenticacion, gestionProductos, gestionVentas
+    aplicacion.register_blueprint(autenticacion)
+    aplicacion.register_blueprint(gestionProductos)
+    aplicacion.register_blueprint(gestionVentas)
 
-    with app.app_context():
+    with aplicacion.app_context():
         db.create_all()
 
-    return app
+    return aplicacion
 
 from app.models import Usuario
 
-@login_manager.user_loader
-def load_user(user_id):
-    return Usuario.query.get(int(user_id))
+@loginManager.user_loader
+def cargarUsuario(idUsuario):
+    return Usuario.query.get(int(idUsuario))

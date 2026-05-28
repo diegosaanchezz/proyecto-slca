@@ -1,6 +1,6 @@
-from app import create_app
+from app import crearAplicacion
 
-app = create_app()
+aplicacion = crearAplicacion()
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    aplicacion.run(debug=True, host='0.0.0.0', port=5000)
