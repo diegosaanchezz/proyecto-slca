@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 from . import db
 from .models import Usuario, Producto, Venta
 
@@ -149,9 +150,25 @@ def eliminarProducto(idProducto):
 @gestionVentas.route('/')
 @login_required
 def listaVentas():
-    todasLasVentas = Venta.query.order_by(Venta.fecha.desc()).all()
+    fechaInicio = request.args.get('fecha_inicio', '')
+    fechaFin = request.args.get('fecha_fin', '')
+    hayFiltroFecha = fechaInicio != '' and fechaFin != ''
+    if hayFiltroFecha:
+        fechaInicioConvertida = datetime.strptime(fechaInicio, '%Y-%m-%d')
+        fechaFinConvertida = datetime.strptime(fechaFin, '%Y-%m-%d')
+        todasLasVentas = Venta.query.filter(
+            Venta.fecha >= fechaInicioConvertida,
+            Venta.fecha <= fechaFinConvertida
+        ).order_by(Venta.fecha.desc()).all()
+    else:
+        todasLasVentas = Venta.query.order_by(Venta.fecha.desc()).all()
     totalAcumulado = sum(v.total for v in todasLasVentas)
-    return render_template('ventas/index.html', ventas=todasLasVentas, totalAcumulado=totalAcumulado)
+    return render_template('ventas/index.html',
+        ventas=todasLasVentas,
+        totalAcumulado=totalAcumulado,
+        fechaInicio=fechaInicio,
+        fechaFin=fechaFin
+    )
 
 @gestionVentas.route('/nueva', methods=['GET', 'POST'])
 @login_required

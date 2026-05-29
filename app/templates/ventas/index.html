@@ -4,6 +4,24 @@
     <h2><i class="bi bi-cart-check"></i> Ventas</h2>
     <a href="/ventas/nueva" class="btn btn-dark"><i class="bi bi-plus-lg"></i> Nueva venta</a>
 </div>
+<form method="GET" action="/ventas" class="mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Fecha inicio</label>
+            <input type="date" name="fecha_inicio" class="form-control" value="{{ fechaInicio }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Fecha fin</label>
+            <input type="date" name="fecha_fin" class="form-control" value="{{ fechaFin }}">
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn btn-dark"><i class="bi bi-funnel"></i> Filtrar</button>
+            {% if fechaInicio %}
+            <a href="/ventas" class="btn btn-outline-secondary">Limpiar</a>
+            {% endif %}
+        </div>
+    </div>
+</form>
 <div class="row mb-4">
     <div class="col-md-4">
         <div class="card bg-dark text-white shadow">
@@ -37,7 +55,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="text-center text-muted">Aun no hay ventas registradas</td>
+                    <td colspan="5" class="text-center text-muted">No hay ventas en ese rango de fechas.</td>
                 </tr>
                 {% endfor %}
             </tbody>
