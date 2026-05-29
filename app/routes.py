@@ -77,8 +77,13 @@ def dashboard():
 @gestionProductos.route('/')
 @login_required
 def listaProductos():
-    todosLosProductos = Producto.query.all()
-    return render_template('productos/index.html', productos=todosLosProductos)
+    terminoBusqueda = request.args.get('buscar', '')
+    hayBusqueda = terminoBusqueda != ''
+    if hayBusqueda:
+        todosLosProductos = Producto.query.filter(Producto.nombre.ilike('%' + terminoBusqueda + '%')).all()
+    else:
+        todosLosProductos = Producto.query.all()
+    return render_template('productos/index.html', productos=todosLosProductos, terminoBusqueda=terminoBusqueda)
 
 @gestionProductos.route('/nuevo', methods=['GET', 'POST'])
 @login_required
