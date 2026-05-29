@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<h2 class="mb-4"><i class="bi bi-speedometer2"></i> Dashboard</h2>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-body">
+                <h6 class="card-title">Total productos</h6>
+                <h3>{{ totalProductos }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-body">
+                <h6 class="card-title">Total ventas</h6>
+                <h3>{{ totalVentas }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-body">
+                <h6 class="card-title">Ingresos totales</h6>
+                <h3>${{ "%.2f"|format(totalIngresos) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark text-white shadow">
+            <div class="card-body">
+                <h6 class="card-title">Producto mas vendido</h6>
+                <h3>{{ productoMasVendido.nombre if productoMasVendido else 'N/A' }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <h5 class="mb-3"><i class="bi bi-exclamation-triangle text-danger"></i> Productos con stock bajo</h5>
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoria</th>
+                    <th>Stock restante</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productosStockBajo %}
+                <tr>
+                    <td>{{ producto.nombre }}</td>
+                    <td>{{ producto.categoria }}</td>
+                    <td><span class="badge bg-danger">{{ producto.stock }}</span></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted">Todos los productos tienen stock suficiente.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

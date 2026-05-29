@@ -126,3 +126,27 @@ def nuevaVenta():
             flash('Venta registrada por $' + str(round(totalVenta, 2)), 'success')
             return redirect(url_for('ventas.listaVentas'))
     return render_template('ventas/nueva.html', productos=productosDisponibles)
+
+@autenticacion.route('/dashboard')
+@login_required
+def dashboard():
+    totalProductos = Producto.query.count()
+    totalVentas = Venta.query.count()
+    todasLasVentas = Venta.query.all()
+    totalIngresos = sum(v.total for v in todasLasVentas)
+    productosStockBajo = Producto.query.filter(Producto.stock <= 5).all()
+    productoMasVendido = None
+    cantidadMaxima = 0
+    todosLosProductos = Producto.query.all()
+    for producto in todosLosProductos:
+        cantidadVendidaTotal = sum(v.cantidad for v in producto.ventas)
+        if cantidadVendidaTotal > cantidadMaxima:
+            cantidadMaxima = cantidadVendidaTotal
+            productoMasVendido = producto
+    return render_template('dashboard.html',
+        totalProductos=totalProductos,
+        totalVentas=totalVentas,
+        totalIngresos=totalIngresos,
+        productosStockBajo=productosStockBajo,
+        productoMasVendido=productoMasVendido
+    )
