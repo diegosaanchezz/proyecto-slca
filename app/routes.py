@@ -50,6 +50,30 @@ def cerrarSesion():
     logout_user()
     return redirect(url_for('auth.paginaLogin'))
 
+@autenticacion.route('/dashboard')
+@login_required
+def dashboard():
+    totalProductos = Producto.query.count()
+    totalVentas = Venta.query.count()
+    todasLasVentas = Venta.query.all()
+    totalIngresos = sum(v.total for v in todasLasVentas)
+    productosStockBajo = Producto.query.filter(Producto.stock <= 5).all()
+    productoMasVendido = None
+    cantidadMaxima = 0
+    todosLosProductos = Producto.query.all()
+    for producto in todosLosProductos:
+        cantidadVendidaTotal = sum(v.cantidad for v in producto.ventas)
+        if cantidadVendidaTotal > cantidadMaxima:
+            cantidadMaxima = cantidadVendidaTotal
+            productoMasVendido = producto
+    return render_template('dashboard.html',
+        totalProductos=totalProductos,
+        totalVentas=totalVentas,
+        totalIngresos=totalIngresos,
+        productosStockBajo=productosStockBajo,
+        productoMasVendido=productoMasVendido
+    )
+
 @gestionProductos.route('/')
 @login_required
 def listaProductos():
@@ -64,6 +88,14 @@ def nuevoProducto():
         precioProducto = float(request.form.get('precio'))
         stockProducto = int(request.form.get('stock'))
         categoriaProducto = request.form.get('categoria')
+        precioNegativo = precioProducto < 0
+        stockNegativo = stockProducto < 0
+        if precioNegativo:
+            flash('El precio no puede ser negativo.', 'danger')
+            return render_template('productos/nuevo.html')
+        if stockNegativo:
+            flash('El stock no puede ser negativo.', 'danger')
+            return render_template('productos/nuevo.html')
         productoNuevo = Producto(
             nombre=nombreProducto,
             precio=precioProducto,
@@ -81,9 +113,19 @@ def nuevoProducto():
 def editarProducto(idProducto):
     productoSeleccionado = Producto.query.get_or_404(idProducto)
     if request.method == 'POST':
+        precioProducto = float(request.form.get('precio'))
+        stockProducto = int(request.form.get('stock'))
+        precioNegativo = precioProducto < 0
+        stockNegativo = stockProducto < 0
+        if precioNegativo:
+            flash('El precio no puede ser negativo.', 'danger')
+            return render_template('productos/editar.html', producto=productoSeleccionado)
+        if stockNegativo:
+            flash('El stock no puede ser negativo.', 'danger')
+            return render_template('productos/editar.html', producto=productoSeleccionado)
         productoSeleccionado.nombre = request.form.get('nombre')
-        productoSeleccionado.precio = float(request.form.get('precio'))
-        productoSeleccionado.stock = int(request.form.get('stock'))
+        productoSeleccionado.precio = precioProducto
+        productoSeleccionado.stock = stockProducto
         productoSeleccionado.categoria = request.form.get('categoria')
         db.session.commit()
         flash('Producto actualizado.', 'success')
@@ -114,8 +156,11 @@ def nuevaVenta():
         idProductoSeleccionado = int(request.form.get('producto_id'))
         cantidadVendida = int(request.form.get('cantidad'))
         productoSeleccionado = Producto.query.get_or_404(idProductoSeleccionado)
+        cantidadNegativa = cantidadVendida <= 0
         stockInsuficiente = cantidadVendida > productoSeleccionado.stock
-        if stockInsuficiente:
+        if cantidadNegativa:
+            flash('La cantidad debe ser mayor a cero.', 'danger')
+        elif stockInsuficiente:
             flash('Stock insuficiente. Solo hay ' + str(productoSeleccionado.stock) + ' unidades.', 'danger')
         else:
             totalVenta = productoSeleccionado.precio * cantidadVendida
@@ -126,27 +171,3 @@ def nuevaVenta():
             flash('Venta registrada por $' + str(round(totalVenta, 2)), 'success')
             return redirect(url_for('ventas.listaVentas'))
     return render_template('ventas/nueva.html', productos=productosDisponibles)
-
-@autenticacion.route('/dashboard')
-@login_required
-def dashboard():
-    totalProductos = Producto.query.count()
-    totalVentas = Venta.query.count()
-    todasLasVentas = Venta.query.all()
-    totalIngresos = sum(v.total for v in todasLasVentas)
-    productosStockBajo = Producto.query.filter(Producto.stock <= 5).all()
-    productoMasVendido = None
-    cantidadMaxima = 0
-    todosLosProductos = Producto.query.all()
-    for producto in todosLosProductos:
-        cantidadVendidaTotal = sum(v.cantidad for v in producto.ventas)
-        if cantidadVendidaTotal > cantidadMaxima:
-            cantidadMaxima = cantidadVendidaTotal
-            productoMasVendido = producto
-    return render_template('dashboard.html',
-        totalProductos=totalProductos,
-        totalVentas=totalVentas,
-        totalIngresos=totalIngresos,
-        productosStockBajo=productosStockBajo,
-        productoMasVendido=productoMasVendido
-    )
